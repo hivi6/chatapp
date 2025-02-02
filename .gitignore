@@ -1,0 +1,6 @@
+# python environment
+.pyenv
+__pycache__
+
+# chatapp database
+chatapp.db
