@@ -13,5 +13,4 @@
     1. aiohttp: web framework
     2. database handler: aiosqlite
     3. jwt: pyjwt
-    4. 
 3. Database: sqlite3
