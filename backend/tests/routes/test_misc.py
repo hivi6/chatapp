@@ -4,10 +4,9 @@ import shutil
 from aiohttp.test_utils import AioHTTPTestCase
 
 from src.app import create_app
-from src.configs.jwt import JWT_KEY
 
 
-class TestJWTConfig(AioHTTPTestCase):
+class TestMiscsRoute(AioHTTPTestCase):
     async def get_application(self):
         # Set a custom db path for the webapp
         self.dbpath = ".test/this_is_a_test.db"
