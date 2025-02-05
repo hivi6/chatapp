@@ -4,6 +4,7 @@ import shutil
 
 import aiosqlite
 from aiohttp.test_utils import AioHTTPTestCase
+from argon2 import PasswordHasher
 
 from src.app import create_app
 
@@ -55,6 +56,8 @@ class TestRegisterRoutes(AioHTTPTestCase):
                     int(time.time() - 5) <= last_online <= int(time.time()),
                     msg="last_online should be within the last 5 seconds",
                 )
+                passhasher = PasswordHasher()
+                passhasher.verify(password, "xyz")
 
     async def test_register_with_registered_username(self):
         # Send json with valid username, password and fullname
