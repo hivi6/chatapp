@@ -4,7 +4,7 @@ import shutil
 
 import jwt
 import aiosqlite
-from aiohttp.test_utils import AioHTTPTestCase
+from aiohttp.test_utils import AioHTTPTestCase, ClientSession
 from argon2 import PasswordHasher
 
 from src.app import create_app
@@ -154,6 +154,49 @@ class TestAuthRoutes(AioHTTPTestCase):
         ) as res:
             self.assertEqual(res.status, 401)
             self.assertEqual(await res.text(), "mismatch username and password")
+
+    async def test_verify(self):
+        # Create a new user
+        async with self.client.post(
+            "/register", json={"username": "pqr", "password": "xyz", "fullname": "123"}
+        ) as res:
+            self.assertEqual(res.status, 201)
+            self.assertEqual(await res.text(), "registered")
+
+        # Check if login is working
+        async with self.client.post(
+            "/auth/login", json={"username": "pqr", "password": "xyz"}
+        ) as res:
+            self.assertEqual(res.status, 202)
+            self.assertEqual(await res.text(), "login successful")
+            login_token = res.cookies.get("login-token")
+            jwt_decode = jwt.decode(
+                login_token.value, self.jwtsecret, algorithms="HS256"
+            )
+            self.assertEqual(jwt_decode["username"], "pqr")
+
+        # # Don't know but below code is not working
+        # # Check if verify is working
+        # async with self.client.get("/auth/verify") as res:
+        #     self.assertEqual(res.status, 200)
+
+        async with ClientSession(
+            self.client.make_url(""), cookies={"login-token": login_token.value}
+        ) as session:
+            async with session.get("/auth/verify") as res:
+                self.assertEqual(res.status, 200)
+                self.assertEqual(await res.text(), "Hello, pqr")
+
+    async def test_verify_with_invalid_token(self):
+        async with ClientSession(self.client.make_url("")) as session:
+            async with session.get("/auth/verify") as res:
+                self.assertEqual(res.status, 401)
+                self.assertEqual(await res.text(), "login-token required")
+
+        async with ClientSession(self.client.make_url(""), cookies={"login-token": "wrong login token"}) as session:
+            async with session.get("/auth/verify") as res:
+                self.assertEqual(res.status, 401)
+                self.assertEqual(await res.text(), "invalid login-token")
 
     async def tearDownAsync(self):
         # Remove the dbpath

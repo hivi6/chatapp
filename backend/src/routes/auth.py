@@ -84,3 +84,20 @@ async def handle_login(request: web.Request):
         "login-token", encoded_jwt, max_age=max_age, secure=True, httponly=True
     )
     return response
+
+
+async def handle_verify(request: web.Request):
+    jwtsecret = request.app[JWT_KEY]
+
+    # Check if the request has a valid login-token cookie
+    login_token = request.cookies.get("login-token", None)
+    if login_token is None:
+        raise web.HTTPUnauthorized(text="login-token required")
+
+    try:
+        decoded_jwt = jwt.decode(login_token, jwtsecret, algorithms="HS256")
+        username = decoded_jwt["username"]
+    except jwt.exceptions.InvalidTokenError:
+        raise web.HTTPUnauthorized(text="invalid login-token")
+
+    return web.Response(text=f"Hello, {username}")
