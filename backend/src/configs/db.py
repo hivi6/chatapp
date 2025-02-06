@@ -22,13 +22,24 @@ async def db_ctx(app: web.Application):
     await db.executescript(
         """
         CREATE TABLE IF NOT EXISTS users(
-            id INTEGER PRIMARY KEY,
+            id INTEGER,
             username TEXT NOT NULL UNIQUE,
             fullname TEXT NOT NULL,
             password TEXT NOT NULL,
             is_online INTEGER NOT NULL DEFAULT 0,
             last_online INTEGER DEFAULT (unixepoch()),
-            created_at INTEGER DEFAULT (unixepoch())
+            created_at INTEGER DEFAULT (unixepoch()),
+            -- constraints
+            PRIMARY KEY (id)
+        );
+
+        CREATE TABLE IF NOT EXISTS contacts(
+            user_id INTEGER,
+            contact_id INTEGER,
+            -- constraints
+            PRIMARY KEY (user_id, contact_id),
+            FOREIGN KEY (user_id) REFERENCES users(id),
+            FOREIGN KEY (contact_id) REFERENCES users(id)
         )
         """
     )
