@@ -4,7 +4,6 @@ import shutil
 
 import jwt
 import aiosqlite
-import aiohttp
 from aiohttp.test_utils import AioHTTPTestCase, ClientSession
 from argon2 import PasswordHasher
 
@@ -79,10 +78,31 @@ class TestWSRoutes(AioHTTPTestCase):
             self.client.make_url(""), cookies={"login-token": login_token.value}
         ) as session:
             async with session.ws_connect("/ws") as ws:
+                # Send invalid event
+                await ws.send_str("{...}")
+                res = await ws.receive_json()
+                self.assertEqual(res["success"], False)
+                self.assertEqual(res["error"], "invalid json event")
+
+                # Send valid event but with no type
+                await ws.send_json({})
+                res = await ws.receive_json()
+                self.assertEqual(res["success"], False)
+                self.assertEqual(res["error"], "no type field found in the event")
+
+                # Check ping type
                 await ws.send_json({"type": "ping"})
                 res = await ws.receive_json()
                 self.assertEqual(res["success"], True)
                 self.assertEqual(res["data"], "pong")
+
+                # Check self type
+                await ws.send_json({"type": "self"})
+                res = await ws.receive_json()
+                self.assertEqual(res["success"], True)
+                self.assertEqual(res["data"]["username"], "abc")
+                self.assertEqual(res["data"]["fullname"], "123")
+                self.assertEqual(res["data"]["is_online"], 1)
 
     async def tearDownAsync(self):
         # Remove the dbpath
