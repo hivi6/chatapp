@@ -27,7 +27,8 @@ async def db_ctx(app: web.Application):
             fullname TEXT NOT NULL,
             password TEXT NOT NULL,
             is_online INTEGER NOT NULL DEFAULT 0,
-            last_online INTEGER DEFAULT (unixepoch())
+            last_online INTEGER DEFAULT (unixepoch()),
+            created_at INTEGER DEFAULT (unixepoch())
         )
         """
     )

@@ -23,7 +23,7 @@ async def set_user_status(db: Connection, username: str, is_online: bool):
 
 async def get_userinfo(db: Connection, username: str):
     async with db.execute(
-        "SELECT username, fullname, is_online, last_online FROM users WHERE username = ?",
+        "SELECT username, fullname, is_online, last_online, created_at FROM users WHERE username = ?",
         [username],
     ) as cur:
         res = await cur.fetchall()
@@ -47,7 +47,9 @@ async def handle_ws_event(
     if type == "ping":
         await send_data(ws, "pong")
     elif type == "self":
-        username, fullname, is_online, last_online = await get_userinfo(db, username)
+        username, fullname, is_online, last_online, created_at = await get_userinfo(
+            db, username
+        )
         await send_data(
             ws,
             {
@@ -55,6 +57,7 @@ async def handle_ws_event(
                 "fullname": fullname,
                 "is_online": is_online,
                 "last_online": last_online,
+                "created_at": created_at,
             },
         )
     else:
