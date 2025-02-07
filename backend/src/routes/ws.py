@@ -8,8 +8,7 @@ from aiohttp import web
 
 from src.configs.jwt import JWT_KEY
 from src.configs.db import DB_KEY
-
-WSS_KEY = web.AppKey("wss", dict)  # map of all the users and there websocket
+from src.configs.ws import WSS_KEY
 
 
 async def set_user_status(db: Connection, username: str, is_online: bool):
@@ -67,6 +66,7 @@ async def handle_ws_event(
 async def handle_ws(request: web.Request):
     db = request.app[DB_KEY]
     jwtsecret = request.app[JWT_KEY]
+    wss = request.app[WSS_KEY]
 
     ws = web.WebSocketResponse()
     await ws.prepare(request)
@@ -93,10 +93,6 @@ async def handle_ws(request: web.Request):
 
     try:
         # Keep track of the user's websocket
-        wss = request.app.get(WSS_KEY, None)
-        if wss is None:
-            request.app[WSS_KEY] = dict()
-            wss = request.app[WSS_KEY]
         wss[username] = ws
 
         # Set the user as online
@@ -117,7 +113,7 @@ async def handle_ws(request: web.Request):
                 print("ws connection closed with exception %s" % ws.exception())
     finally:
         # Remove user's websocket
-        del request.app[WSS_KEY][username]
+        del wss[username]
 
         # Set the user as offline
         await set_user_status(db, username, False)
