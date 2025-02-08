@@ -10,7 +10,7 @@ from src.configs.ws import WSS_KEY
 import src.utils.utils as utils
 from src.events.ping import handle_ping
 from src.events.self import handle_self
-from src.events.contact import handle_add_contact
+from src.events.contact import handle_add_contact, handle_get_contacts
 
 
 async def handle_ws_event(app: web.Application, username: str, event: dict):
@@ -24,6 +24,8 @@ async def handle_ws_event(app: web.Application, username: str, event: dict):
         await handle_self(app, username, event)
     elif type == "add_contact":
         await handle_add_contact(app, username, event)
+    elif type == "get_contacts":
+        await handle_get_contacts(app, username, event)
     else:
         await utils.send_error(ws, "root", f"no type field found in the event")
 

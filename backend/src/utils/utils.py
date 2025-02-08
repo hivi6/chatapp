@@ -50,3 +50,13 @@ async def add_contact(db: Connection, user_id: int, contact_id: int):
         [user_id, contact_id, contact_id, user_id],
     ) as cur:
         await db.commit()
+
+
+async def get_contacts(db: Connection, user_id: int):
+    async with db.execute(
+        "SELECT users.username FROM users, contacts "
+        "WHERE users.id = contacts.contact_id AND contacts.user_id = ?",
+        [user_id],
+    ) as cur:
+        res = await cur.fetchall()
+        return [t[0] for t in res]

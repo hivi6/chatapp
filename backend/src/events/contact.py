@@ -55,3 +55,22 @@ async def handle_add_contact(app: web.Application, username: str, event: dict):
             },
         },
     )
+
+
+async def handle_get_contacts(app: web.Application, username: str, event: dict):
+    db = app[DB_KEY]
+    wss = app[WSS_KEY]
+    ws = wss[username]  # Get current username's websocket
+
+    # Get userinfo
+    user = await utils.get_user_info(db, username)
+    if user is None:
+        return await utils.send_error(
+            ws, event["type"], f"no such user '{username}' exists"
+        )
+
+    # Get all the contacts
+    res = await utils.get_contacts(db, user[0])
+    await utils.send_data(
+        ws, event["type"], {"message": "got all the contacts", "contacts": res}
+    )

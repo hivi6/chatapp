@@ -1,5 +1,4 @@
 import os
-import time
 import shutil
 
 import jwt
@@ -66,6 +65,13 @@ class TestWSContactEvent(AioHTTPTestCase):
             self.client.make_url(""), cookies={"login-token": login_token.value}
         ) as session:
             async with session.ws_connect("/ws") as ws:
+                # Get all the contacts
+                await ws.send_json({"type": "get_contacts"})
+                res = await ws.receive_json()
+                self.assertEqual(res["success"], True)
+                self.assertEqual(res["type"], "get_contacts")
+                self.assertTrue(len(res["data"]["contacts"]) == 0)
+
                 # Send no contact_username
                 await ws.send_json({"type": "add_contact"})
                 res = await ws.receive_json()
@@ -113,6 +119,13 @@ class TestWSContactEvent(AioHTTPTestCase):
                 self.assertEqual(res["data"]["contact"]["username"], "uvw")
                 self.assertEqual(res["data"]["contact"]["fullname"], "user3")
                 self.assertEqual(res["data"]["contact"]["is_online"], False)
+
+                # Get all the contacts
+                await ws.send_json({"type": "get_contacts"})
+                res = await ws.receive_json()
+                self.assertEqual(res["success"], True)
+                self.assertEqual(res["type"], "get_contacts")
+                self.assertTrue({"pqr", "uvw"} == set(res["data"]["contacts"]))
 
     async def tearDownAsync(self):
         # Remove the dbpath
