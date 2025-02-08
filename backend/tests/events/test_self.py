@@ -57,11 +57,15 @@ class TestWSSelfEvent(AioHTTPTestCase):
                 self.assertEqual(res["data"]["fullname"], "123")
                 self.assertEqual(res["data"]["is_online"], True)
                 self.assertTrue(
-                    int(time.time() - 5) <= res["data"]["last_online"] <= int(time.time()),
+                    int(time.time() - 5)
+                    <= res["data"]["last_online"]
+                    <= int(time.time()),
                     msg="last_online should be within the last 5 seconds",
                 )
                 self.assertTrue(
-                    int(time.time() - 5) <= res["data"]["created_at"] <= int(time.time()),
+                    int(time.time() - 5)
+                    <= res["data"]["created_at"]
+                    <= int(time.time()),
                     msg="created_at should be within the last 5 seconds",
                 )
 

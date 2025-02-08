@@ -41,7 +41,6 @@ class TestWSPingEvent(AioHTTPTestCase):
                 login_token.value, self.jwtsecret, algorithms="HS256"
             )
             self.assertEqual(jwt_decode["username"], "abc")
-            username = jwt_decode["username"]
 
         # check websocket connection
         async with ClientSession(

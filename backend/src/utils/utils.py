@@ -31,3 +31,22 @@ async def set_user_status(db: Connection, username: str, is_online: bool):
         [int(is_online), last_online, username],
     ):
         await db.commit()
+
+
+async def is_contact(db: Connection, user_id: int, contact_id: int):
+    async with db.execute(
+        "SELECT COUNT(*) FROM contacts WHERE user_id = ? AND contact_id = ?",
+        [user_id, contact_id],
+    ) as cur:
+        res = await cur.fetchone()
+        if res[0] == 0:
+            return False
+    return True
+
+
+async def add_contact(db: Connection, user_id: int, contact_id: int):
+    async with db.execute(
+        "INSERT INTO contacts VALUES (?, ?), (?, ?)",
+        [user_id, contact_id, contact_id, user_id],
+    ) as cur:
+        await db.commit()
