@@ -1,66 +1,28 @@
-import time
 import json
 
 import jwt
 import aiohttp
-from aiosqlite import Connection
 from aiohttp import web
 
 from src.configs.jwt import JWT_KEY
 from src.configs.db import DB_KEY
 from src.configs.ws import WSS_KEY
+import src.utils.utils as utils
+from src.events.ping import handle_ping
+from src.events.self import handle_self
 
 
-async def set_user_status(db: Connection, username: str, is_online: bool):
-    last_online = int(time.time())
-    async with db.execute(
-        "UPDATE users SET is_online = ?, last_online = ?  WHERE username = ?",
-        [int(is_online), last_online, username],
-    ):
-        await db.commit()
-
-
-async def get_userinfo(db: Connection, username: str):
-    async with db.execute(
-        "SELECT username, fullname, is_online, last_online, created_at FROM users WHERE username = ?",
-        [username],
-    ) as cur:
-        res = await cur.fetchall()
-        if len(res) == 0:
-            return None
-        return res[0]
-
-
-async def send_error(ws: web.WebSocketResponse, msg: str):
-    await ws.send_json({"success": False, "error": msg})
-
-
-async def send_data(ws: web.WebSocketResponse, any):
-    await ws.send_json({"success": True, "data": any})
-
-
-async def handle_ws_event(
-    ws: web.WebSocketResponse, db: Connection, username: str, event: dict
-):
+async def handle_ws_event(app: web.Application, username: str, event: dict):
+    ws = app[WSS_KEY][username]
     type = event.get("type", None)
+
+    # Handle event type
     if type == "ping":
-        await send_data(ws, "pong")
+        await handle_ping(app, username, event)
     elif type == "self":
-        username, fullname, is_online, last_online, created_at = await get_userinfo(
-            db, username
-        )
-        await send_data(
-            ws,
-            {
-                "username": username,
-                "fullname": fullname,
-                "is_online": is_online,
-                "last_online": last_online,
-                "created_at": created_at,
-            },
-        )
+        await handle_self(app, username, event)
     else:
-        await send_error(ws, "no type field found in the event")
+        await utils.send_error(ws, "root", f"no type field found in the event")
 
 
 async def handle_ws(request: web.Request):
@@ -86,9 +48,17 @@ async def handle_ws(request: web.Request):
         return ws
 
     # Check if the username acquired from the login-token is valid
-    check = await get_userinfo(db, username)
+    check = await utils.get_user_info(db, username)
     if check is None:
         await ws.close(message=f"'{username}' doesn't exists")
+        return ws
+
+    # Check if websocket is already connected
+    # There can be only one websocket connection per user
+    if username in wss:
+        await ws.close(
+            message=f"'{username}' is already connected. Cannot have multiple instance"
+        )
         return ws
 
     try:
@@ -96,7 +66,7 @@ async def handle_ws(request: web.Request):
         wss[username] = ws
 
         # Set the user as online
-        await set_user_status(db, username, True)
+        await utils.set_user_status(db, username, True)
 
         # Handle all websocket events
         async for msg in ws:
@@ -104,11 +74,11 @@ async def handle_ws(request: web.Request):
                 try:
                     event = msg.json()
                     if type(event) is not dict:
-                        await send_error(ws, "invalid json event")
+                        await utils.send_error(ws, "root", "invalid json event")
                     else:
-                        await handle_ws_event(ws, db, username, event)
+                        await handle_ws_event(request.app, username, event)
                 except json.JSONDecodeError:
-                    await send_error(ws, "invalid json event")
+                    await utils.send_error(ws, "root", "invalid json event")
             elif msg.type == aiohttp.WSMsgType.ERROR:
                 print("ws connection closed with exception %s" % ws.exception())
     finally:
@@ -116,6 +86,6 @@ async def handle_ws(request: web.Request):
         del wss[username]
 
         # Set the user as offline
-        await set_user_status(db, username, False)
+        await utils.set_user_status(db, username, False)
 
     return ws

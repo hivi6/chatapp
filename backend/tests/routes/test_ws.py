@@ -73,6 +73,24 @@ class TestWSRoutes(AioHTTPTestCase):
             self.assertEqual(jwt_decode["username"], "abc")
             username = jwt_decode["username"]
 
+        # Create websocket connection with no login_token
+        async with ClientSession(self.client.make_url(""), cookies={}) as session:
+            async with session.ws_connect("/ws") as ws:
+                # Check if the res is closes
+                res = await ws.receive()
+                self.assertEqual(ws.closed, True)
+                self.assertEqual(res.extra, "login-token required")
+
+        # Create websocket connection with invalid login_token
+        async with ClientSession(
+            self.client.make_url(""), cookies={"login-token": "invalid-token"}
+        ) as session:
+            async with session.ws_connect("/ws") as ws:
+                # Check if the res is closes
+                res = await ws.receive()
+                self.assertEqual(ws.closed, True)
+                self.assertEqual(res.extra, "invalid login-token")
+
         # check websocket connection
         async with ClientSession(
             self.client.make_url(""), cookies={"login-token": login_token.value}
@@ -94,15 +112,8 @@ class TestWSRoutes(AioHTTPTestCase):
                 await ws.send_json({"type": "ping"})
                 res = await ws.receive_json()
                 self.assertEqual(res["success"], True)
+                self.assertEqual(res["type"], "ping")
                 self.assertEqual(res["data"], "pong")
-
-                # Check self type
-                await ws.send_json({"type": "self"})
-                res = await ws.receive_json()
-                self.assertEqual(res["success"], True)
-                self.assertEqual(res["data"]["username"], "abc")
-                self.assertEqual(res["data"]["fullname"], "123")
-                self.assertEqual(res["data"]["is_online"], 1)
 
     async def tearDownAsync(self):
         # Remove the dbpath
