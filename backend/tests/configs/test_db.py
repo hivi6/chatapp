@@ -25,7 +25,7 @@ class TestDBConfig(AioHTTPTestCase):
         self.assertEqual(self.server.app[DBPATH_KEY], self.dbpath)
 
         # Check if the tables are created
-        final_tables = ["users", "contacts"]
+        final_tables = ["users", "contacts", "conversations", "members"]
         async with aiosqlite.connect(self.dbpath) as conn:
             async with conn.execute(
                 "SELECT name FROM sqlite_master WHERE type = 'table'"

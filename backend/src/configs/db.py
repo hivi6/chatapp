@@ -40,6 +40,23 @@ async def db_ctx(app: web.Application):
             PRIMARY KEY (user_id, contact_id),
             FOREIGN KEY (user_id) REFERENCES users(id),
             FOREIGN KEY (contact_id) REFERENCES users(id)
+        );
+
+        CREATE TABLE IF NOT EXISTS conversations(
+            id INTEGER,
+            name TEXT NOT NULL,
+            recent INTEGER DEFAULT (unixepoch()),
+            -- constraints
+            PRIMARY KEY (id)
+        );
+
+        CREATE TABLE IF NOT EXISTS members(
+            conversation_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            -- constraints
+            PRIMARY KEY (conversation_id, user_id),
+            FOREIGN KEY (conversation_id) REFERENCES conversations(id),
+            FOREIGN KEy (user_id) REFERENCES users(id)
         )
         """
     )
