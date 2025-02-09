@@ -6,6 +6,36 @@ from src.configs.db import DB_KEY
 
 
 async def handle_add_contact(app: web.Application, username: str, event: dict):
+    """
+    request schema:
+        {
+            "type": "add_contact",
+            "contact_username": "", // This is the username that you want to create contact
+        }
+
+    response schema:
+        error schema:
+            {
+                "success": false,
+                "type": "add_contact",
+                "error": "..." // This is the error message
+            }
+        success schema:
+            {
+                "success": true,
+                "type": "add_contact",
+                "data": {
+                    "message": "...", // This is the message saying that contact is added
+                    "contact": {      // This is the contact information that was added
+                        "username": "...",
+                        "fullname": "...",
+                        "is_online": true,
+                        "last_online": 123, // Integer value in unix epoch seconds
+                        "created_at": 123   // Integer value in unix epoch seconds
+                    }
+                }
+            }
+    """
     db = app[DB_KEY]
     wss = app[WSS_KEY]
     ws = wss[username]  # Get current username's websocket
@@ -58,6 +88,34 @@ async def handle_add_contact(app: web.Application, username: str, event: dict):
 
 
 async def handle_get_contacts(app: web.Application, username: str, event: dict):
+    """
+    request schema:
+        {
+            "type": "get_contacts"
+        }
+
+    response schema:
+        error schema:
+            {
+                "success": false,
+                "type": "get_contacts",
+                "error": "..." // Message of the error
+            }
+
+        success schema:
+            {
+                "success": false,
+                "type": "get_contacts",
+                "data": {
+                    "message": "...", // Message stating that contacts are successfully fetch
+                    "contacts": [ // Array of usernames
+                        "user1",
+                        "user2",
+                        ...
+                    ]
+                }
+            }
+    """
     db = app[DB_KEY]
     wss = app[WSS_KEY]
     ws = wss[username]  # Get current username's websocket

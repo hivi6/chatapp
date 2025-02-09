@@ -6,6 +6,33 @@ from src.configs.db import DB_KEY
 
 
 async def handle_self(app: web.Application, username: str, event: dict):
+    """
+    request schema:
+        {
+            "type": "self"
+        }
+
+    response schema:
+        error schema:
+            {
+                "type": "self",
+                "success": false,
+                "error": "..." # Error message
+            }
+
+        success schema:
+            {
+                "type": "self",
+                "success": true,
+                "data": { // Information of self
+                    "username": "...",
+                    "fullname": "...",
+                    "is_online": true,
+                    "last_online": 123,
+                    "created_at": 123
+                }
+            }
+    """
     db = app[DB_KEY]
     wss = app[WSS_KEY]
     ws = wss[username]  # Get current username's websocket
