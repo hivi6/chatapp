@@ -88,6 +88,54 @@ class TestWSConversationEvent(AioHTTPTestCase):
                 self.assertEqual(res["data"][0]["id"], convo1_id)
                 self.assertEqual(res["data"][0]["name"], "convo1")
 
+                # Create another conversation
+                await ws.send_json(
+                    {
+                        "type": "create_conversation",
+                        "name": "convo2",
+                        "members": ["pqr", "uvw"],
+                    }
+                )
+                res = await ws.receive_json()
+                self.assertEqual(res["success"], True)
+                self.assertEqual(res["type"], "create_conversation")
+                self.assertEqual(res["data"]["name"], "convo2")
+                self.assertTrue(set(res["data"]["members"]) == {"abc", "pqr", "uvw"})
+
+                # Get all conversation
+                await ws.send_json({"type": "get_conversations"})
+                res = await ws.receive_json()
+                self.assertEqual(res["success"], True)
+                self.assertEqual(res["type"], "get_conversations")
+                self.assertEqual(len(res["data"]), 2)
+
+                # Get conversation information
+                await ws.send_json({"type": "get_conversation_info", "id": 1})
+                res = await ws.receive_json()
+                self.assertEqual(res["success"], True)
+                self.assertEqual(res["type"], "get_conversation_info")
+                self.assertEqual(res["data"]["id"], 1)
+                self.assertEqual(res["data"]["name"], "convo1")
+                self.assertTrue(set(res["data"]["members"]) == {"abc", "pqr"})
+
+                # Get conversation information of 2
+                await ws.send_json({"type": "get_conversation_info", "id": 2})
+                res = await ws.receive_json()
+                self.assertEqual(res["success"], True)
+                self.assertEqual(res["type"], "get_conversation_info")
+                self.assertEqual(res["data"]["id"], 2)
+                self.assertEqual(res["data"]["name"], "convo2")
+                self.assertTrue(set(res["data"]["members"]) == {"uvw", "abc", "pqr"})
+
+                # Get conversation information of incorrect conversation
+                await ws.send_json({"type": "get_conversation_info", "id": 3})
+                res = await ws.receive_json()
+                self.assertEqual(res["success"], False)
+                self.assertEqual(res["type"], "get_conversation_info")
+                self.assertEqual(
+                    res["error"], f"abc is not part of any conversation with 3 id"
+                )
+
     async def tearDownAsync(self):
         # Remove the dbpath
         shutil.rmtree(os.path.dirname(self.dbpath))

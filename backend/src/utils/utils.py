@@ -132,3 +132,32 @@ def get_conversations(db: sqlite3.Connection, username: str):
     for c in cur.fetchall():
         res.append({"id": c[0], "name": c[1]})
     return res
+
+
+def has_conversation(db: sqlite3.Connection, username: str, id: int):
+    user_id = get_user_info(db, username)[0]
+    cur = db.execute(
+        "SELECT 1 FROM members WHERE user_id = ? AND conversation_id = ?", [user_id, id]
+    )
+    return len(cur.fetchall()) >= 1
+
+
+def get_conversation_info(db: sqlite3.Connection, convo_id: int):
+    res = {}
+
+    # Get conversation name
+    cur = db.execute("SELECT name FROM conversations WHERE id = ?", [convo_id])
+    res["id"] = convo_id
+    res["name"] = cur.fetchone()[0]
+    res["members"] = []
+
+    # Get all the members
+    cur = db.execute(
+        "SELECT users.username FROM users, members WHERE "
+        "users.id = members.user_id AND members.conversation_id = ?",
+        [convo_id],
+    )
+    for u in cur.fetchall():
+        res["members"].append(u[0])
+
+    return res

@@ -125,3 +125,58 @@ async def handle_get_conversations(app: web.Application, username: str, event: d
     res = utils.get_conversations(db, username)
 
     await utils.send_data(ws, event["type"], res)
+
+
+async def handle_get_conversation_info(
+    app: web.Application, username: str, event: dict
+):
+    """
+    request schema:
+        {
+            "type": "get_conversation_info",
+            "id": 123 // Conversation id
+        }
+
+    response schema:
+        error schema:
+            {
+                "type": "get_conversation_info",
+                "success": false,
+                "error": "..." # Error message
+            }
+
+        success schema:
+            {
+                "type": "get_conversation_info",
+                "success": true,
+                "data": {
+                    "id": 123,
+                    "name": "...",
+                    "members": [ // All the members in the conversation
+                        "user1",
+                        "user2",
+                        ...
+                    ]
+                }
+            }
+    """
+    db = app[DB_KEY]
+    wss = app[WSS_KEY]
+    ws = wss[username]  # Get current username's websocket
+
+    # Get conversation id
+    convo_id = event.get("id", None)
+    if type(convo_id) is not int:
+        return await utils.send_error(ws, event["type"], "id is required as int")
+
+    # Check if username is part of the conversation
+    if not utils.has_conversation(db, username, convo_id):
+        return await utils.send_error(
+            ws,
+            event["type"],
+            f"{username} is not part of any conversation with {convo_id} id",
+        )
+
+    # Get conversation information
+    res = utils.get_conversation_info(db, convo_id)
+    await utils.send_data(ws, event["type"], res)
