@@ -54,7 +54,6 @@ async def db_ctx(app: web.Application):
             CREATE TABLE IF NOT EXISTS conversations(
                 id INTEGER,
                 name TEXT NOT NULL,
-                recent INTEGER DEFAULT (unixepoch()),
                 -- constraints
                 PRIMARY KEY (id)
             );

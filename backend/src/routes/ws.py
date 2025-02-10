@@ -11,6 +11,7 @@ import src.utils.utils as utils
 from src.events.ping import handle_ping
 from src.events.self import handle_self
 from src.events.contact import handle_add_contact, handle_get_contacts
+from src.events.conversation import handle_create_conversation, handle_get_conversations
 
 
 async def handle_ws_event(app: web.Application, username: str, event: dict):
@@ -26,6 +27,10 @@ async def handle_ws_event(app: web.Application, username: str, event: dict):
         await handle_add_contact(app, username, event)
     elif type == "get_contacts":
         await handle_get_contacts(app, username, event)
+    elif type == "create_conversation":
+        await handle_create_conversation(app, username, event)
+    elif type == "get_conversations":
+        await handle_get_conversations(app, username, event)
     else:
         await utils.send_error(ws, "root", f"no type field found in the event")
 

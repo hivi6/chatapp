@@ -12,6 +12,26 @@ async def send_data(ws: web.WebSocketResponse, type: str, any):
     await ws.send_json({"success": True, "type": type, "data": any})
 
 
+async def send_data_convo(
+    convo_id: int,
+    wss: dict[str, web.WebSocketResponse],
+    db: sqlite3.Connection,
+    type: str,
+    any,
+):
+    cur = db.execute(
+        "SELECT users.username FROM members, users WHERE "
+        "members.user_id = users.id AND members.conversation_id = ?",
+        [convo_id],
+    )
+    for res in cur.fetchall():
+        username = res[0]
+        ws = wss.get(username, None)
+        if ws is None:  # Check if websocket exists
+            continue
+        await send_data(ws, type, any)
+
+
 def get_user_info(db: sqlite3.Connection, username: str):
     cur = db.execute(
         "SELECT id, username, fullname, password, is_online, last_online, created_at FROM users "
@@ -74,3 +94,41 @@ def get_contacts(db: sqlite3.Connection, user_id: int):
     )
     res = cur.fetchall()
     return [t[0] for t in res]
+
+
+def create_conversation(db: sqlite3.Connection, name: str, members) -> int:
+    cur = db.cursor()
+
+    cur.execute("BEGIN")
+    try:
+        # Create a new conversation
+        cur.execute("INSERT INTO conversations(name) VALUES (?)", [name])
+        convo_id = cur.lastrowid
+
+        # Get the alternative userid against the members
+        params = [(convo_id, get_user_info(db, m)[0]) for m in members]
+
+        # Insert the member with it's conversation id
+        cur.executemany(
+            "INSERT INTO members(conversation_id, user_id) VALUES (?, ?)", params
+        )
+        cur.execute("COMMIT")
+    except sqlite3.Error as e:
+        cur.execute("ROLLBACK")
+        print(e)
+        return None
+
+    return convo_id
+
+
+def get_conversations(db: sqlite3.Connection, username: str):
+    user_id = get_user_info(db, username)[0]
+    cur = db.execute(
+        "SELECT conversations.id, conversations.name FROM members, conversations WHERE "
+        "conversations.id = members.conversation_id AND members.user_id = ?",
+        [user_id],
+    )
+    res = []
+    for c in cur.fetchall():
+        res.append({"id": c[0], "name": c[1]})
+    return res
