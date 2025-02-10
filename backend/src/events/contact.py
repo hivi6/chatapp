@@ -41,7 +41,7 @@ async def handle_add_contact(app: web.Application, username: str, event: dict):
     ws = wss[username]  # Get current username's websocket
 
     # Get userinfo
-    user = await utils.get_user_info(db, username)
+    user = utils.get_user_info(db, username)
     if user is None:
         return await utils.send_error(
             ws, event["type"], f"no such user '{username}' exists"
@@ -57,20 +57,20 @@ async def handle_add_contact(app: web.Application, username: str, event: dict):
         return await utils.send_error(
             ws, event["type"], f"cannot add itself as a contact"
         )
-    contact_user = await utils.get_user_info(db, contact_username)
+    contact_user = utils.get_user_info(db, contact_username)
     if contact_user is None:
         return await utils.send_error(
             ws, event["type"], f"no such user '{contact_username}' exists"
         )
 
     # Check if contact_username is already a contact
-    if await utils.is_contact(db, user[0], contact_user[0]):
+    if utils.is_contact(db, user[0], contact_user[0]):
         return await utils.send_error(
             ws, event["type"], f"'{contact_username}' is already a contact"
         )
 
     # Add contact_username as a contact
-    await utils.add_contact(db, user[0], contact_user[0])
+    utils.add_contact(db, user[0], contact_user[0])
     await utils.send_data(
         ws,
         event["type"],
@@ -121,14 +121,14 @@ async def handle_get_contacts(app: web.Application, username: str, event: dict):
     ws = wss[username]  # Get current username's websocket
 
     # Get userinfo
-    user = await utils.get_user_info(db, username)
+    user = utils.get_user_info(db, username)
     if user is None:
         return await utils.send_error(
             ws, event["type"], f"no such user '{username}' exists"
         )
 
     # Get all the contacts
-    res = await utils.get_contacts(db, user[0])
+    res = utils.get_contacts(db, user[0])
     await utils.send_data(
         ws, event["type"], {"message": "got all the contacts", "contacts": res}
     )

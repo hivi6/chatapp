@@ -1,22 +1,29 @@
 import json
 import time
+import sqlite3
 
 import jwt
 import argon2
-from aiosqlite import Connection
 from aiohttp import web
-from aiojobs.aiohttp import shield
 
 from src.configs.db import DB_KEY
 from src.configs.passhasher import PASSHASHER_KEY
 from src.configs.jwt import JWT_KEY
 
 
-async def update_password_hash(db: Connection, username: str, password: str):
-    await db.execute(
-        "UPDATE users SET password = ? WHERE username = ?", [password, username]
-    )
-    await db.commit()
+def update_password_hash(db: sqlite3.Connection, username: str, password: str) -> str:
+    cur = db.cursor()
+    cur.execute("BEGIN")
+    try:
+        cur.execute(
+            "UPDATE users SET password = ? WHERE username = ?", [password, username]
+        )
+        cur.execute("COMMIT")
+    except sqlite3.Error as e:
+        cur.execute("ROLLBACK")
+        return "something went wrong: update_password_hash"
+
+    return None
 
 
 async def handle_login(request: web.Request):
@@ -54,24 +61,24 @@ async def handle_login(request: web.Request):
 
     # Check if password is correct
     valid_pass = False
-    async with db.execute(
-        "SELECT password FROM users WHERE username = ?", [username]
-    ) as cur:
-        password_hashes = await cur.fetchall()
-        if len(password_hashes) == 1:
-            passhash = password_hashes[0][0]
-            try:
-                passhasher.verify(passhash, password)
-                valid_pass = True
-            except argon2.exceptions.VerificationError:
-                pass
+    cur = db.execute("SELECT password FROM users WHERE username = ?", [username])
+    password_hashes = cur.fetchall()
+    if len(password_hashes) == 1:
+        passhash = password_hashes[0][0]
+        try:
+            passhasher.verify(passhash, password)
+            valid_pass = True
+        except argon2.exceptions.VerificationError:
+            pass
     if not valid_pass:
         raise web.HTTPUnauthorized(text="mismatch username and password")
 
     # Check if password needs rehash for security reasons
     if passhasher.check_needs_rehash(passhash):
         new_passhash = passhasher.hash(password)
-        await shield(request, update_password_hash(db, username, new_passhash))
+        err = update_password_hash(db, username, new_passhash)
+        if err is not None:
+            raise web.HTTPServerError(text=err)
 
     # Generate a jwt login token
     max_age = 3600

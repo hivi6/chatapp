@@ -1,9 +1,9 @@
 import os
 import time
 import shutil
+import sqlite3
 
 import jwt
-import aiosqlite
 from aiohttp.test_utils import AioHTTPTestCase, ClientSession
 from argon2 import PasswordHasher
 
@@ -34,31 +34,25 @@ class TestWSRoutes(AioHTTPTestCase):
             self.assertEqual(await res.text(), "registered")
 
         # Check in database for the inserted data
-        async with aiosqlite.connect(self.dbpath) as conn:
-            async with conn.execute(
+        with sqlite3.connect(self.dbpath) as conn:
+            cur = conn.execute(
                 "SELECT id, username, fullname, password, is_online, last_online FROM users "
                 "WHERE username = 'abc'"
-            ) as cur:
-                id, username, fullname, password, is_online, last_online = (
-                    await cur.fetchone()
-                )
-                self.assertTrue(0 <= id <= 10, msg="id should be under 10")
-                self.assertTrue(
-                    username == "abc", msg="username should be equal to abc"
-                )
-                self.assertTrue(
-                    fullname == "123", msg="fullname should be equal to 123"
-                )
-                self.assertTrue(
-                    len(password) != 0, msg="password hash length should not be empty"
-                )
-                self.assertTrue(is_online == 0, msg="is_online should be false")
-                self.assertTrue(
-                    int(time.time() - 5) <= last_online <= int(time.time()),
-                    msg="last_online should be within the last 5 seconds",
-                )
-                passhasher = PasswordHasher()
-                passhasher.verify(password, "xyz")
+            )
+            id, username, fullname, password, is_online, last_online = cur.fetchone()
+            self.assertTrue(0 <= id <= 10, msg="id should be under 10")
+            self.assertTrue(username == "abc", msg="username should be equal to abc")
+            self.assertTrue(fullname == "123", msg="fullname should be equal to 123")
+            self.assertTrue(
+                len(password) != 0, msg="password hash length should not be empty"
+            )
+            self.assertTrue(is_online == 0, msg="is_online should be false")
+            self.assertTrue(
+                int(time.time() - 5) <= last_online <= int(time.time()),
+                msg="last_online should be within the last 5 seconds",
+            )
+            passhasher = PasswordHasher()
+            passhasher.verify(password, "xyz")
 
         # Create a login session
         async with self.client.post(

@@ -1,7 +1,7 @@
 import os
 import shutil
+import sqlite3
 
-import aiosqlite
 from aiohttp.test_utils import AioHTTPTestCase
 
 from src.app import create_app
@@ -26,12 +26,10 @@ class TestDBConfig(AioHTTPTestCase):
 
         # Check if the tables are created
         final_tables = ["users", "contacts", "conversations", "members"]
-        async with aiosqlite.connect(self.dbpath) as conn:
-            async with conn.execute(
-                "SELECT name FROM sqlite_master WHERE type = 'table'"
-            ) as cursor:
-                tables = await cursor.fetchall()
-                self.assertEqual(set(final_tables), set([t[0] for t in tables]))
+        with sqlite3.connect(self.dbpath) as conn:
+            cur = conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
+            tables = cur.fetchall()
+            self.assertEqual(set(final_tables), set([t[0] for t in tables]))
 
     async def tearDownAsync(self):
         # Remove the dbpath

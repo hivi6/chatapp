@@ -1,5 +1,4 @@
 from aiohttp import web
-import aiojobs.aiohttp
 
 import src.configs.db as db_config
 import src.configs.jwt as jwt_config
@@ -32,8 +31,5 @@ def create_app():
 
     # Add ws routes
     app.router.add_get("/ws", ws_routes.handle_ws)
-
-    # This is required for shielding and atomic operations
-    aiojobs.aiohttp.setup(app)
 
     return app

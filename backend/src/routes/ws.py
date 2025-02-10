@@ -53,7 +53,7 @@ async def handle_ws(request: web.Request):
         return ws
 
     # Check if the username acquired from the login-token is valid
-    check = await utils.get_user_info(db, username)
+    check = utils.get_user_info(db, username)
     if check is None:
         await ws.close(message=f"'{username}' doesn't exists")
         return ws
@@ -71,7 +71,7 @@ async def handle_ws(request: web.Request):
         wss[username] = ws
 
         # Set the user as online
-        await utils.set_user_status(db, username, True)
+        utils.set_user_status(db, username, True)
 
         # Handle all websocket events
         async for msg in ws:
@@ -91,6 +91,6 @@ async def handle_ws(request: web.Request):
         del wss[username]
 
         # Set the user as offline
-        await utils.set_user_status(db, username, False)
+        utils.set_user_status(db, username, False)
 
     return ws

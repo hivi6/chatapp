@@ -1,8 +1,8 @@
 import os
 import time
 import shutil
+import sqlite3
 
-import aiosqlite
 from aiohttp.test_utils import AioHTTPTestCase
 from argon2 import PasswordHasher
 
@@ -33,35 +33,31 @@ class TestRegisterRoutes(AioHTTPTestCase):
             self.assertEqual(await res.text(), "registered")
 
         # Check in database for the inserted data
-        async with aiosqlite.connect(self.dbpath) as conn:
-            async with conn.execute(
+        with sqlite3.connect(self.dbpath) as conn:
+            cur = conn.execute(
                 "SELECT id, username, fullname, password, is_online, last_online, created_at FROM users "
                 "WHERE username = 'abc'"
-            ) as cur:
-                id, username, fullname, password, is_online, last_online, created_at = (
-                    await cur.fetchone()
-                )
-                self.assertTrue(0 <= id <= 10, msg="id should be under 10")
-                self.assertTrue(
-                    username == "abc", msg="username should be equal to abc"
-                )
-                self.assertTrue(
-                    fullname == "123", msg="fullname should be equal to 123"
-                )
-                self.assertTrue(
-                    len(password) != 0, msg="password hash length should not be empty"
-                )
-                self.assertTrue(is_online == 0, msg="is_online should be false")
-                self.assertTrue(
-                    int(time.time() - 5) <= last_online <= int(time.time()),
-                    msg="last_online should be within the last 5 seconds",
-                )
-                self.assertTrue(
-                    int(time.time() - 5) <= created_at <= int(time.time()),
-                    msg="created_at should be within the last 5 seconds",
-                )
-                passhasher = PasswordHasher()
-                passhasher.verify(password, "xyz")
+            )
+            id, username, fullname, password, is_online, last_online, created_at = (
+                cur.fetchone()
+            )
+            self.assertTrue(0 <= id <= 10, msg="id should be under 10")
+            self.assertTrue(username == "abc", msg="username should be equal to abc")
+            self.assertTrue(fullname == "123", msg="fullname should be equal to 123")
+            self.assertTrue(
+                len(password) != 0, msg="password hash length should not be empty"
+            )
+            self.assertTrue(is_online == 0, msg="is_online should be false")
+            self.assertTrue(
+                int(time.time() - 5) <= last_online <= int(time.time()),
+                msg="last_online should be within the last 5 seconds",
+            )
+            self.assertTrue(
+                int(time.time() - 5) <= created_at <= int(time.time()),
+                msg="created_at should be within the last 5 seconds",
+            )
+            passhasher = PasswordHasher()
+            passhasher.verify(password, "xyz")
 
     async def test_register_with_registered_username(self):
         # Send json with valid username, password and fullname

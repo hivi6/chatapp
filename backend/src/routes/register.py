@@ -1,19 +1,27 @@
 import json
+import sqlite3
 
-from aiosqlite import Connection
 from aiohttp import web
-from aiojobs.aiohttp import shield
 
 from src.configs.db import DB_KEY
 from src.configs.passhasher import PASSHASHER_KEY
 
 
-async def insert_user(db: Connection, username: str, password: str, fullname: str):
-    await db.execute(
-        "INSERT INTO users(username, password, fullname) VALUES (?, ?, ?)",
-        [username, password, fullname],
-    )
-    await db.commit()
+def insert_user(
+    db: sqlite3.Connection, username: str, password: str, fullname: str
+) -> str:
+    cur = db.cursor()
+    cur.execute("BEGIN")
+    try:
+        cur.execute(
+            "INSERT INTO users(username, password, fullname) VALUES (?, ?, ?)",
+            [username, password, fullname],
+        )
+        cur.execute("COMMIT")
+    except sqlite3.Error as e:
+        cur.execute("ROLLBACK")
+        return "something went wrong: insert_user"
+    return None
 
 
 async def handle_register(request: web.Request):
@@ -57,10 +65,8 @@ async def handle_register(request: web.Request):
 
     # Check if username already exists
     exists = False
-    async with db.execute(
-        "SELECT COUNT(*) FROM users WHERE username = ?", [username]
-    ) as cursor:
-        exists = (await cursor.fetchone())[0] != 0
+    cur = db.execute("SELECT COUNT(*) FROM users WHERE username = ?", [username])
+    exists = cur.fetchone()[0] != 0
     if exists:
         raise web.HTTPConflict(text="username already exists")
 
@@ -68,6 +74,8 @@ async def handle_register(request: web.Request):
     password_hash = passhaser.hash(password)
 
     # Insert username, password, and fullname into the database
-    await shield(request, insert_user(db, username, password_hash, fullname))
+    err = insert_user(db, username, password_hash, fullname)
+    if err is not None:
+        raise web.HTTPServerError(text=err)
 
     return web.HTTPCreated(text="registered")

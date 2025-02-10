@@ -38,7 +38,7 @@ async def handle_self(app: web.Application, username: str, event: dict):
     ws = wss[username]  # Get current username's websocket
 
     # Get userinfo
-    row = await utils.get_user_info(db, username)
+    row = utils.get_user_info(db, username)
     if row is None:
         return await utils.send_error(
             ws, event["type"], f"no such user '{username}' exists"
