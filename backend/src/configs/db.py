@@ -67,7 +67,24 @@ async def db_ctx(app: web.Application):
                 -- constraints
                 PRIMARY KEY (conversation_id, user_id),
                 FOREIGN KEY (conversation_id) REFERENCES conversations(id),
-                FOREIGN KEy (user_id) REFERENCES users(id)
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+            """
+        )
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS messages (
+                id INTEGER NOT NULL,
+                sender_id INTEGER NOT NULL,
+                conversation_id INTEGER NOT NULL,
+                reply_id INTEGER,
+                sent_at INTEGER DEFAULT (unixepoch()),
+                content TEXT,
+                -- constraints
+                PRIMARY KEY (id),
+                FOREIGN KEY (sender_id) REFERENCES users(id),
+                FOREIGN KEY (conversation_id) REFERENCES conversations(id),
+                FOREIGN KEY (reply_id) REFERENCES messages(id)
             )
             """
         )
