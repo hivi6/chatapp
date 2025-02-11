@@ -84,6 +84,11 @@ async def handle_ws(request: web.Request):
         # Set the user as online
         utils.set_user_status(db, username, True)
 
+        # Send to all the contacts that the username is onlines
+        await utils.send_data_contact(
+            wss, username, db, "user_status", {"username": username, "is_online": True}
+        )
+
         # Handle all websocket events
         async for msg in ws:
             if msg.type == aiohttp.WSMsgType.TEXT:
@@ -103,5 +108,10 @@ async def handle_ws(request: web.Request):
 
         # Set the user as offline
         utils.set_user_status(db, username, False)
+
+        # Send to all the contacts that the username is offline
+        await utils.send_data_contact(
+            wss, username, db, "user_status", {"username": username, "is_online": False}
+        )
 
     return ws

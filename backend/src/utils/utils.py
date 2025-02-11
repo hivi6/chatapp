@@ -32,6 +32,27 @@ async def send_data_convo(
         await send_data(ws, type, any)
 
 
+async def send_data_contact(
+    wss: dict[str, web.WebSocketResponse],
+    username: str,
+    db: sqlite3.Connection,
+    type: str,
+    any,
+):
+    user_id = get_user_info(db, username)[0]
+    cur = db.execute(
+        "SELECT users.username FROM users, contacts WHERE "
+        "users.id = contacts.contact_id AND contacts.user_id = ?",
+        [user_id],
+    )
+    for res in cur.fetchall():
+        contact_username = res[0]
+        ws = wss.get(contact_username, None)
+        if ws is None:
+            continue
+        await send_data(ws, type, any)
+
+
 def get_user_info(db: sqlite3.Connection, username: str):
     cur = db.execute(
         "SELECT id, username, fullname, password, is_online, last_online, created_at FROM users "
