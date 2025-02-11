@@ -100,3 +100,69 @@ async def handle_send_message(app: web.Application, username: str, event: dict):
             "sent_at": sent_at,
         },
     )
+
+
+async def handle_get_messages(app: web.Application, username: str, event: dict):
+    """
+    request schema:
+        {
+            "type": "get_messages",
+            "conversation_id": 123, // Conversation id
+            "before": 123,          // optional: All messages before the given message id
+        }
+
+    response schema:
+        error schema:
+            {
+                "type": "get_messages",
+                "success": false,
+                "error": "..." # Error message
+            }
+
+        success schema: sends the most recent messages(In descending order)
+            {
+                "type": "get_messages",
+                "success": true,
+                "data": {
+                    "conversation_id": 123, // conversation_id
+                    "messages": [           // List of messages, max 100
+                        {
+                            "id": 123,                // Message id
+                            "sender_username": "...", // Senders username
+                            "reply_id": 123,          // Message id
+                            "content": "...",         // Message content
+                            "sent_at": 123,           // timestamp of when data was sent
+                        },
+                        ...
+                    ]
+                }
+            }
+    """
+    db = app[DB_KEY]
+    wss = app[WSS_KEY]
+    ws = wss[username]  # Get current username's websocket
+
+    # Check if conversation_id is valid
+    conversation_id = event.get("conversation_id", None)
+    if type(conversation_id) is not int:
+        return await utils.send_error(
+            ws, event["type"], "expected conversation_id as integer"
+        )
+    if not utils.has_conversation(db, username, conversation_id):
+        return await utils.send_error(
+            ws,
+            event["type"],
+            f"{username} not part of conversation with {conversation_id} id",
+        )
+
+    # Check if before is valid
+    before = event.get(
+        "before", 1 << 55
+    )  # Assuming 2**55 is the max messages in the db
+    if type(before) is not int:
+        return await utils.send_error(ws, event["type"], "expected before as integer")
+
+    messages = utils.get_messages(db, conversation_id, before)
+    await utils.send_data(
+        ws, event["type"], {"conversation_id": conversation_id, "messages": messages}
+    )

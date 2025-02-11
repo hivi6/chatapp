@@ -218,3 +218,24 @@ def add_message(
         print(e)
 
     return message_id
+
+
+def get_messages(db: sqlite3.Connection, conversation_id: int, before: int):
+    cur = db.execute(
+        "SELECT messages.id, users.username, messages.reply_id, messages.content, messages.sent_at "
+        "FROM users, messages "
+        "WHERE users.id = messages.sender_id AND messages.conversation_id = ? AND messages.id < ? "
+        "ORDER BY messages.id DESC "
+        "LIMIT 100",
+        [conversation_id, before],
+    )
+    return [
+        {
+            "id": r[0],
+            "sender_username": r[1],
+            "reply_id": r[2],
+            "content": r[3],
+            "sent_at": r[4],
+        }
+        for r in cur.fetchall()
+    ]

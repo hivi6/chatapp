@@ -93,6 +93,41 @@ class TestWSMessageEvent(AioHTTPTestCase):
                 self.assertEqual(res["data"]["reply_id"], None)
                 self.assertEqual(res["data"]["content"], "hello")
 
+                # Send another message
+                await ws.send_json(
+                    {
+                        "type": "send_message",
+                        "conversation_id": conversation_id,
+                        "content": "hi",
+                    }
+                )
+                res = await ws.receive_json()
+                self.assertEqual(res["success"], True)
+
+                # Get all messages
+                await ws.send_json(
+                    {"type": "get_messages", "conversation_id": conversation_id}
+                )
+                res = await ws.receive_json()
+                self.assertEqual(res["success"], True)
+                self.assertEqual(res["type"], "get_messages")
+                self.assertEqual(res["data"]["conversation_id"], conversation_id)
+                self.assertTrue(len(res["data"]["messages"]) == 2)
+
+                # Get all messages before some id
+                await ws.send_json(
+                    {
+                        "type": "get_messages",
+                        "conversation_id": conversation_id,
+                        "before": 2,
+                    }
+                )
+                res = await ws.receive_json()
+                self.assertEqual(res["success"], True)
+                self.assertEqual(res["type"], "get_messages")
+                self.assertEqual(res["data"]["conversation_id"], conversation_id)
+                self.assertTrue(len(res["data"]["messages"]) == 1)
+
     async def tearDownAsync(self):
         # Remove the dbpath
         shutil.rmtree(os.path.dirname(self.dbpath))
