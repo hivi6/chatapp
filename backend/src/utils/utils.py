@@ -182,3 +182,39 @@ def get_conversation_info(db: sqlite3.Connection, convo_id: int):
         res["members"].append(u[0])
 
     return res
+
+
+def has_message(db: sqlite3.Connection, conversation_id: int, message_id: int):
+    cur = db.execute(
+        "SELECT COUNT(*) FROM messages WHERE conversation_id = ? AND id = ?",
+        [conversation_id, message_id],
+    )
+    return cur.fetchone()[0] != 0
+
+
+def add_message(
+    db: sqlite3.Connection,
+    conversation_id: int,
+    content: str,
+    reply_id: int,
+    username: str,
+    sent_at: int,
+):
+    message_id = None
+    cur = db.cursor()
+    sender_id = get_user_info(db, username)[0]
+
+    cur.execute("BEGIN")
+    try:
+        cur.execute(
+            "INSERT INTO messages(sender_id, conversation_id, reply_id, sent_at, content) "
+            "VALUES (?, ?, ?, ?, ?)",
+            [sender_id, conversation_id, reply_id, sent_at, content],
+        )
+        cur.execute("COMMIT")
+        message_id = cur.lastrowid
+    except sqlite3.Error as e:
+        cur.execute("ROLLBACK")
+        print(e)
+
+    return message_id

@@ -1,6 +1,5 @@
 import os
 import shutil
-import asyncio
 
 import jwt
 from aiohttp.test_utils import AioHTTPTestCase, ClientSession

@@ -16,6 +16,7 @@ from src.events.conversation import (
     handle_get_conversations,
     handle_get_conversation_info,
 )
+from src.events.message import handle_send_message
 
 
 async def handle_ws_event(app: web.Application, username: str, event: dict):
@@ -37,6 +38,8 @@ async def handle_ws_event(app: web.Application, username: str, event: dict):
         await handle_get_conversations(app, username, event)
     elif type == "get_conversation_info":
         await handle_get_conversation_info(app, username, event)
+    elif type == "send_message":
+        await handle_send_message(app, username, event)
     else:
         await utils.send_error(ws, "root", f"no type field found in the event")
 
