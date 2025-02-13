@@ -1,16 +1,9 @@
 # Chatapp
 
-## Constraint
+A chat application from scratch.
 
-1. Monolith app
+## Tech Stack
 
-## Stack
-
-### Backend
-
-1. Langauge: python
-2. Libraries:
-    1. aiohttp: web framework
-    2. database handler: aiosqlite
-    3. jwt: pyjwt
-3. Database: sqlite3
+1. [Backend](backend/README.md): aiohttp(python)
+2. Database: sqlite3
+3. Frontend: react(js)
