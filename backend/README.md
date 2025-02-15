@@ -171,7 +171,7 @@ When a websocket connection is establish, it sends a event with type as `user_st
 
 _EVENT RESPONSE_
 
-```json
+```javascript
 {
     "type": "user_status"
     "success": true,
@@ -193,7 +193,7 @@ _EVENT RESPONSE_
 
 _EVENT REQUEST_
 
-```json
+```javascript
 {
   "type": "self"
 }
@@ -203,7 +203,7 @@ _EVENT RESPONSE_
 
 Success:
 
-```json
+```javascript
 {
   "type": "self",
   "success": true,
@@ -220,7 +220,7 @@ Success:
 
 Error:
 
-```json
+```javascript
 {
   "type": "self",
   "success": false,
@@ -239,7 +239,7 @@ Error:
 
 _EVENT REQUEST_
 
-```json
+```javascript
 {
   "type": "ping"
 }
@@ -247,7 +247,7 @@ _EVENT REQUEST_
 
 _EVENT RESPONSE_
 
-```json
+```javascript
 {
   "type": "ping",
   "success": true,
@@ -266,7 +266,7 @@ _EVENT RESPONSE_
 
 _EVENT REQUEST_
 
-```json
+```javascript
 {
   "type": "add_contact",
   "contact_username": "..." // This is the username that you want to create contact
@@ -277,7 +277,7 @@ _EVENT RESPONSE_
 
 Success:
 
-```json
+```javascript
 {
   "success": true,
   "type": "add_contact",
@@ -297,7 +297,7 @@ Success:
 
 Error:
 
-```json
+```javascript
 {
   "success": false,
   "type": "add_contact",
@@ -316,7 +316,7 @@ Error:
 
 _EVENT REQUEST_
 
-```json
+```javascript
 {
   "type": "get_contacts"
 }
@@ -326,7 +326,7 @@ _EVENT RESPONSE_
 
 Success:
 
-```json
+```javascript
 {
     "success": false,
     "type": "get_contacts",
@@ -343,7 +343,7 @@ Success:
 
 Error:
 
-```json
+```javascript
 {
   "success": false,
   "type": "get_contacts",
@@ -362,7 +362,7 @@ Error:
 
 _EVENT REQUEST_
 
-```json
+```javascript
 {
     "type": "create_conversation",
     "members": [ // Array of usernames, self username not included
@@ -377,7 +377,7 @@ _EVENT RESPONSE_
 
 Success:
 
-```json
+```javascript
 {
     "type": "create_conversation",
     "success": true,
@@ -396,7 +396,7 @@ Success:
 
 Error:
 
-```json
+```javascript
 {
   "type": "create_conversation",
   "success": false,
@@ -415,7 +415,7 @@ Error:
 
 _EVENT REQUEST_
 
-```json
+```javascript
 {
   "type": "get_conversations"
 }
@@ -425,7 +425,7 @@ _EVENT RESPONSE_
 
 Success:
 
-```json
+```javascript
 {
     "type": "get_conversations",
     "success": true,
@@ -444,7 +444,7 @@ Success:
 
 Error:
 
-```json
+```javascript
 {
   "type": "get_conversations",
   "success": false,
@@ -463,7 +463,7 @@ Error:
 
 _EVENT REQUEST_
 
-```json
+```javascript
 {
   "type": "get_conversation_info",
   "id": 123 // Conversation id
@@ -474,7 +474,7 @@ _EVENT RESPONSE_
 
 Success:
 
-```json
+```javascript
 {
     "type": "get_conversation_info",
     "success": true,
@@ -492,7 +492,7 @@ Success:
 
 Error:
 
-```json
+```javascript
 {
   "type": "get_conversation_info",
   "success": false,
@@ -511,7 +511,7 @@ Error:
 
 _EVENT REQUEST_
 
-```json
+```javascript
 {
   "type": "send_message",
   "conversation_id": 123, // Conversation id
@@ -524,7 +524,7 @@ _EVENT RESPONSE_
 
 Success:
 
-```json
+```javascript
 {
   "type": "send_message",
   "success": true,
@@ -541,7 +541,7 @@ Success:
 
 Error:
 
-```json
+```javascript
 {
   "type": "send_message",
   "success": false,
@@ -560,7 +560,7 @@ Error:
 
 _EVENT REQUEST_
 
-```json
+```javascript
 {
   "type": "get_messages",
   "conversation_id": 123, // Conversation id
@@ -573,7 +573,7 @@ _EVENT RESPONSE_
 
 Success:
 
-```json
+```javascript
 {
     "type": "get_messages",
     "success": true,
@@ -595,7 +595,7 @@ Success:
 
 Error:
 
-```json
+```javascript
 {
   "type": "get_messages",
   "success": false,
