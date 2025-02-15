@@ -5,8 +5,10 @@ A chatapp backend written in python.
 ## Environment variables
 
 The backend takes in 2 environment variables:
+
 1. DBPATH: Path to where the database needs to be created, or used. defaults to `.data/chatapp.db`
 2. JWTSECRET: This is the jwt secret used for creating login-token's. defaults to `this is a demo jwt secret`
+3. CORS_ALLOW_ORIGIN: This is the cors allow origin, defaults to `http://localhost:5173` (This is only for main.py not for test.py)
 
 ## Setting up requirements
 
@@ -160,12 +162,12 @@ When a websocket connection is establish, it sends a event with type as `user_st
 
 #### user_status event
 
-- About: 
-    - Send user status to all the contact usernames, when the user gets online or offline.
-- Trigger: 
-    - This event response is sent when a user successfully connects or disconnects from a websocket.
-- To: 
-    - This event is sent to all the active contact username connections.
+- About:
+  - Send user status to all the contact usernames, when the user gets online or offline.
+- Trigger:
+  - This event response is sent when a user successfully connects or disconnects from a websocket.
+- To:
+  - This event is sent to all the active contact username connections.
 
 _EVENT RESPONSE_
 
@@ -182,18 +184,18 @@ _EVENT RESPONSE_
 
 #### self event
 
-- About: 
-    - Send user information to the connected websocket.
-- Trigger: 
-    - This event response is sent when an user makes an event request to the server.
-- To: 
-    - This event is sent as a response to the request made by the user.
+- About:
+  - Send user information to the connected websocket.
+- Trigger:
+  - This event response is sent when an user makes an event request to the server.
+- To:
+  - This event is sent as a response to the request made by the user.
 
 _EVENT REQUEST_
 
 ```json
 {
-    "type": "self"
+  "type": "self"
 }
 ```
 
@@ -203,43 +205,43 @@ Success:
 
 ```json
 {
-    "type": "self",
-    "success": true,
-    "data": { // Information of self
-        "username": "...",
-        "fullname": "...",
-        "is_online": true,
-        "last_online": 123,
-        "created_at": 123
-    }
+  "type": "self",
+  "success": true,
+  "data": {
+    // Information of self
+    "username": "...",
+    "fullname": "...",
+    "is_online": true,
+    "last_online": 123,
+    "created_at": 123
+  }
 }
 ```
 
 Error:
 
-
 ```json
 {
-    "type": "self",
-    "success": false,
-    "error": "..." // Error message
+  "type": "self",
+  "success": false,
+  "error": "..." // Error message
 }
 ```
 
-####  ping event
+#### ping event
 
-- About: 
-    - Just send pong. Similar to `/misc/ping`
-- Trigger: 
-    - This event response is sent when an user makes an event request to the server.
-- To: 
-    - This event is sent as a response to the request made by the user.
+- About:
+  - Just send pong. Similar to `/misc/ping`
+- Trigger:
+  - This event response is sent when an user makes an event request to the server.
+- To:
+  - This event is sent as a response to the request made by the user.
 
 _EVENT REQUEST_
 
 ```json
 {
-    "type": "ping"
+  "type": "ping"
 }
 ```
 
@@ -247,28 +249,27 @@ _EVENT RESPONSE_
 
 ```json
 {
-    "type": "ping",
-    "success": true,
-    "data": "pong"
+  "type": "ping",
+  "success": true,
+  "data": "pong"
 }
 ```
 
 #### add_contact event
 
-- About: 
-    - Create a new contact.
-- Trigger: 
-    - This event response is sent when an user makes an event request to the server.
-- To: 
-    - This event is sent as a response to the request made by the user.
-
+- About:
+  - Create a new contact.
+- Trigger:
+  - This event response is sent when an user makes an event request to the server.
+- To:
+  - This event is sent as a response to the request made by the user.
 
 _EVENT REQUEST_
 
 ```json
 {
-    "type": "add_contact",
-    "contact_username": "...", // This is the username that you want to create contact
+  "type": "add_contact",
+  "contact_username": "..." // This is the username that you want to create contact
 }
 ```
 
@@ -278,18 +279,19 @@ Success:
 
 ```json
 {
-    "success": true,
-    "type": "add_contact",
-    "data": {
-        "message": "...", // This is the message saying that contact is added
-        "contact": {      // This is the contact information that was added
-            "username": "...",
-            "fullname": "...",
-            "is_online": true,
-            "last_online": 123, // Integer value in unix epoch seconds
-            "created_at": 123   // Integer value in unix epoch seconds
-        }
+  "success": true,
+  "type": "add_contact",
+  "data": {
+    "message": "...", // This is the message saying that contact is added
+    "contact": {
+      // This is the contact information that was added
+      "username": "...",
+      "fullname": "...",
+      "is_online": true,
+      "last_online": 123, // Integer value in unix epoch seconds
+      "created_at": 123 // Integer value in unix epoch seconds
     }
+  }
 }
 ```
 
@@ -297,26 +299,26 @@ Error:
 
 ```json
 {
-    "success": false,
-    "type": "add_contact",
-    "error": "..." // This is the error message
+  "success": false,
+  "type": "add_contact",
+  "error": "..." // This is the error message
 }
 ```
 
 #### get_contacts event
 
-- About: 
-    - Send all the contacts of the connected user.
-- Trigger: 
-    - This event response is sent when an user makes an event request to the server.
-- To: 
-    - This event is sent as a response to the request made by the user.
+- About:
+  - Send all the contacts of the connected user.
+- Trigger:
+  - This event response is sent when an user makes an event request to the server.
+- To:
+  - This event is sent as a response to the request made by the user.
 
 _EVENT REQUEST_
 
 ```json
 {
-    "type": "get_contacts"
+  "type": "get_contacts"
 }
 ```
 
@@ -343,20 +345,20 @@ Error:
 
 ```json
 {
-    "success": false,
-    "type": "get_contacts",
-    "error": "..." // Message of the error
+  "success": false,
+  "type": "get_contacts",
+  "error": "..." // Message of the error
 }
 ```
 
 #### create_conversation event
 
-- About: 
-    - Create a new conversation using the list of users.
-- Trigger: 
-    - This event response is sent when an user makes an event request to the server.
-- To: 
-    - This event to all the users part of the conversation.
+- About:
+  - Create a new conversation using the list of users.
+- Trigger:
+  - This event response is sent when an user makes an event request to the server.
+- To:
+  - This event to all the users part of the conversation.
 
 _EVENT REQUEST_
 
@@ -396,26 +398,26 @@ Error:
 
 ```json
 {
-    "type": "create_conversation",
-    "success": false,
-    "error": "..." // Error message
+  "type": "create_conversation",
+  "success": false,
+  "error": "..." // Error message
 }
 ```
 
 #### get_conversations event
 
-- About: 
-    - Send list of all the conversations of a user
-- Trigger: 
-    - This event response is sent when an user makes an event request to the server.
-- To: 
-    - This event is sent as a response to the request made by the user.
+- About:
+  - Send list of all the conversations of a user
+- Trigger:
+  - This event response is sent when an user makes an event request to the server.
+- To:
+  - This event is sent as a response to the request made by the user.
 
 _EVENT REQUEST_
 
 ```json
 {
-    "type": "get_conversations"
+  "type": "get_conversations"
 }
 ```
 
@@ -444,27 +446,27 @@ Error:
 
 ```json
 {
-    "type": "get_conversations",
-    "success": false,
-    "error": "..." // Error message
+  "type": "get_conversations",
+  "success": false,
+  "error": "..." // Error message
 }
 ```
 
 #### get_conversation_info event
 
-- About: 
-    - Send information about a given conversation.
-- Trigger: 
-    - This event response is sent when an user makes an event request to the server.
-- To: 
-    - This event is sent as a response to the request made by the user.
+- About:
+  - Send information about a given conversation.
+- Trigger:
+  - This event response is sent when an user makes an event request to the server.
+- To:
+  - This event is sent as a response to the request made by the user.
 
 _EVENT REQUEST_
 
 ```json
 {
-    "type": "get_conversation_info",
-    "id": 123 // Conversation id
+  "type": "get_conversation_info",
+  "id": 123 // Conversation id
 }
 ```
 
@@ -492,29 +494,29 @@ Error:
 
 ```json
 {
-    "type": "get_conversation_info",
-    "success": false,
-    "error": "..." // Error message
+  "type": "get_conversation_info",
+  "success": false,
+  "error": "..." // Error message
 }
 ```
 
 #### send_message event
 
-- About: 
-    - Send message to a given conversation
-- Trigger: 
-    - This event response is sent when an user makes an event request to the server.
-- To: 
-    - This event is sent as a response to all the members of a conversation.
+- About:
+  - Send message to a given conversation
+- Trigger:
+  - This event response is sent when an user makes an event request to the server.
+- To:
+  - This event is sent as a response to all the members of a conversation.
 
 _EVENT REQUEST_
 
 ```json
 {
-    "type": "send_message",
-    "conversation_id": 123, // Conversation id
-    "content": "...",       // Message content
-    "reply_id": 123,        // Optional: Message id inside the conversaation
+  "type": "send_message",
+  "conversation_id": 123, // Conversation id
+  "content": "...", // Message content
+  "reply_id": 123 // Optional: Message id inside the conversaation
 }
 ```
 
@@ -524,16 +526,16 @@ Success:
 
 ```json
 {
-    "type": "send_message",
-    "success": true,
-    "data": {
-        "id": 123,                  // Message id
-        "sender_username": "...",   // Sender username
-        "conversation_id": 123,     // Conversation id
-        "reply_id": 123,            // Optional: Message id
-        "content": "...",           // Message content
-        "sent_at": 123,             // Time when message was sent
-    }
+  "type": "send_message",
+  "success": true,
+  "data": {
+    "id": 123, // Message id
+    "sender_username": "...", // Sender username
+    "conversation_id": 123, // Conversation id
+    "reply_id": 123, // Optional: Message id
+    "content": "...", // Message content
+    "sent_at": 123 // Time when message was sent
+  }
 }
 ```
 
@@ -541,29 +543,29 @@ Error:
 
 ```json
 {
-    "type": "send_message",
-    "success": false,
-    "error": "..." // Error message
+  "type": "send_message",
+  "success": false,
+  "error": "..." // Error message
 }
 ```
 
 #### get_messages event
 
-- About: 
-    - Send user messages of a given conversation.
-- Trigger: 
-    - This event response is sent when an user makes an event request to the server.
-- To: 
-    - This event is sent as a response to the request made by the user.
+- About:
+  - Send user messages of a given conversation.
+- Trigger:
+  - This event response is sent when an user makes an event request to the server.
+- To:
+  - This event is sent as a response to the request made by the user.
 
 _EVENT REQUEST_
 
 ```json
 {
-    "type": "get_messages",
-    "conversation_id": 123, // Conversation id
-    "before": 123,          // optional: All messages before the given message id
-                            // if not provided then, it will send the most recent messages
+  "type": "get_messages",
+  "conversation_id": 123, // Conversation id
+  "before": 123 // optional: All messages before the given message id
+  // if not provided then, it will send the most recent messages
 }
 ```
 
@@ -595,8 +597,8 @@ Error:
 
 ```json
 {
-    "type": "get_messages",
-    "success": false,
-    "error": "..." // Error message
+  "type": "get_messages",
+  "success": false,
+  "error": "..." // Error message
 }
 ```
