@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { FaRegLemon } from "react-icons/fa";
 import { Progress } from "radix-ui";
+import { useNavigate } from "react-router-dom";
 
-import { login, ping, verify } from "../services/httpClient";
+import { ping, verify } from "../services/httpClient";
+import { sleep } from "../utils/utils";
 
 const ProgressBar = ({ progress }) => (
   <div className="border-2 rounded-full border-primary">
@@ -21,6 +23,7 @@ const ProgressBar = ({ progress }) => (
 export default function Loading() {
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("> ... <");
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadStuff();
@@ -30,7 +33,8 @@ export default function Loading() {
     const { data, error } = await ping();
     if (error !== undefined) {
       console.log(`checkServerConnection error: ${error}`);
-      // TODO: Goto login screen if error
+      await sleep(500);
+      navigate("/login");
     } else {
       console.log(`checkServerConnection success: ${data}`);
     }
@@ -40,26 +44,25 @@ export default function Loading() {
     const { data, error } = await verify();
     if (error !== undefined) {
       console.log(`verifyUser error: ${error}`);
-      // TODO: Goto login screen if error
+      await sleep(500);
+      navigate("/login");
     } else {
       console.log(`verifyUser success: ${data}`);
     }
   }
 
   async function loadStuff() {
-    await login({ username: "user1", password: "xyz" });
-
     // First set Progress to zero
     setProgress(0);
 
     // Checking if server is active
-    await new Promise((r) => setTimeout(r, 500));
+    await sleep(500);
     setMessage("> Connecting to server <");
     setProgress((prev) => prev + (100 - prev) / 2);
     await checkServerConnection();
 
     // Verifying user
-    await new Promise((r) => setTimeout(r, 500));
+    await sleep(500);
     setMessage("> Verifying user <");
     setProgress((prev) => prev + (100 - prev) / 2);
     await verifyUser();
@@ -73,12 +76,12 @@ export default function Loading() {
     // TODO: Load user messages
 
     // Show Accept message
-    await new Promise((r) => setTimeout(r, 500));
+    await sleep(500);
     setMessage("> Accepted <");
     setProgress(100);
 
     // TODO: Change to dashboard
-    await new Promise((r) => setTimeout(r, 500));
+    await sleep(500);
   }
 
   return (

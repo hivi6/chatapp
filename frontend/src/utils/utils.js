@@ -8,4 +8,8 @@ function sMerge(...args) {
   return res;
 }
 
-export { sMerge };
+async function sleep(ms) {
+  await new Promise((r) => setTimeout(r, ms));
+}
+
+export { sMerge, sleep };
