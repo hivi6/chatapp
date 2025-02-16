@@ -3,7 +3,14 @@ import { FaRegLemon } from "react-icons/fa";
 import { Progress } from "radix-ui";
 import { useNavigate } from "react-router-dom";
 
-import { ping, verify } from "../services/httpClient";
+import {
+  addWSEventHandler,
+  connectWs,
+  deleteWSEventHandler,
+  ping,
+  sendWSPingEvent,
+  verify,
+} from "../services/httpClient";
 import { sleep } from "../utils/utils";
 
 const ProgressBar = ({ progress }) => (
@@ -51,21 +58,38 @@ export default function Loading() {
     }
   }
 
+  async function initWS() {
+    // connect to websocket
+    connectWs();
+
+    // TODO: Add all the required event handlers
+  }
+
+  async function doStuff(message, ms, doThis) {
+    setMessage(message);
+    await sleep(ms);
+    setProgress((prev) => prev + (100 - prev) / 2);
+    await doThis();
+  }
+
   async function loadStuff() {
     // First set Progress to zero
     setProgress(0);
 
     // Checking if server is active
-    await sleep(500);
-    setMessage("> Connecting to server <");
-    setProgress((prev) => prev + (100 - prev) / 2);
-    await checkServerConnection();
+    await doStuff("> Connecting to server <", 500, async () => {
+      await checkServerConnection();
+    });
 
     // Verifying user
-    await sleep(500);
-    setMessage("> Verifying user <");
-    setProgress((prev) => prev + (100 - prev) / 2);
-    await verifyUser();
+    await doStuff("> Verifying user <", 500, async () => {
+      await verifyUser();
+    });
+
+    // Connect to websocket
+    await doStuff("> Creating websocket connection <", 500, async () => {
+      await initWS();
+    });
 
     // TODO: Load user information
 
@@ -76,9 +100,9 @@ export default function Loading() {
     // TODO: Load user messages
 
     // Show Accept message
-    await sleep(500);
-    setMessage("> Accepted <");
-    setProgress(100);
+    await doStuff("> Accepted <", 500, async () => {
+      setProgress(100);
+    });
 
     // TODO: Change to dashboard
     await sleep(500);

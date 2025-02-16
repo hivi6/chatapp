@@ -1,7 +1,10 @@
 const URL = "http://localhost:8000";
 const CREDENTIALS = "include";
 
-async function ping() {
+let WS = null;
+let WS_MESSAGE_HANDLER = {};
+
+export async function ping() {
   try {
     // Check if server is pingable
     const res = await fetch(`${URL}/misc/ping`);
@@ -16,7 +19,7 @@ async function ping() {
   }
 }
 
-async function register({ username, password, fullname }) {
+export async function register({ username, password, fullname }) {
   try {
     // Register an user
     const res = await fetch(`${URL}/register`, {
@@ -33,7 +36,7 @@ async function register({ username, password, fullname }) {
   }
 }
 
-async function login({ username, password }) {
+export async function login({ username, password }) {
   try {
     // Register an user
     const res = await fetch(`${URL}/auth/login`, {
@@ -51,7 +54,7 @@ async function login({ username, password }) {
   }
 }
 
-async function verify() {
+export async function verify() {
   try {
     // Register an user
     const res = await fetch(`${URL}/auth/verify`, {
@@ -68,4 +71,40 @@ async function verify() {
   }
 }
 
-export { ping, register, login, verify };
+export function connectWs() {
+  if (WS !== null) {
+    WS.close();
+    WS_MESSAGE_HANDLER = {};
+  }
+
+  // Handle create a new websocket connection
+  const ws = new WebSocket(`${URL}/ws`);
+
+  ws.onmessage = (e) => {
+    const event = JSON.parse(e.data);
+    if (WS_MESSAGE_HANDLER[event.type] === undefined) {
+      console.log("No such handler");
+      console.log(event);
+    } else {
+      // Call the handler
+      WS_MESSAGE_HANDLER[event.type](event);
+    }
+  };
+
+  WS = ws;
+  WS_MESSAGE_HANDLER = {};
+}
+
+export function sendWSPingEvent() {
+  if (WS) {
+    WS.send(JSON.stringify({ type: "ping" }));
+  }
+}
+
+export function addWSEventHandler(eventType, handler) {
+  WS_MESSAGE_HANDLER[eventType] = handler;
+}
+
+export function deleteWSEventHandler(eventType) {
+  delete WS_MESSAGE_HANDLER[eventType];
+}
