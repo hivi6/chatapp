@@ -333,8 +333,14 @@ Success:
     "data": {
         "message": "...", // Message stating that contacts are successfully fetch
         "contacts": [ // Array of usernames
-            "user1",
-            "user2",
+            {
+                // This is the contact information that was added
+                "username": "...",
+                "fullname": "...",
+                "is_online": true,
+                "last_online": 123, // Integer value in unix epoch seconds
+                "created_at": 123 // Integer value in unix epoch seconds
+            },
             ...
         ]
     }

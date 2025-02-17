@@ -109,8 +109,14 @@ async def handle_get_contacts(app: web.Application, username: str, event: dict):
                 "data": {
                     "message": "...", // Message stating that contacts are successfully fetch
                     "contacts": [ // Array of usernames
-                        "user1",
-                        "user2",
+                        {
+                            // This is the contact information that was added
+                            "username": "...",
+                            "fullname": "...",
+                            "is_online": true,
+                            "last_online": 123, // Integer value in unix epoch seconds
+                            "created_at": 123 // Integer value in unix epoch seconds
+                        },
                         ...
                     ]
                 }
@@ -128,7 +134,20 @@ async def handle_get_contacts(app: web.Application, username: str, event: dict):
         )
 
     # Get all the contacts
-    res = utils.get_contacts(db, user[0])
+    contacts = utils.get_contacts(db, user[0])
+    res = []
+    for contact_username in contacts:
+        contact_user = utils.get_user_info(db, contact_username)
+        res.append(
+            {
+                "username": contact_user[1],
+                "fullname": contact_user[2],
+                "is_online": contact_user[4],
+                "last_online": contact_user[5],
+                "created_at": contact_user[6],
+            }
+        )
+
     await utils.send_data(
         ws, event["type"], {"message": "got all the contacts", "contacts": res}
     )

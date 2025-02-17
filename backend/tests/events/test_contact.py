@@ -77,10 +77,14 @@ class TestWSContactEvent(AioHTTPTestCase):
                 res = await ws.receive_json()
                 self.assertEqual(res["success"], False)
                 self.assertEqual(res["type"], "add_contact")
-                self.assertEqual(res["error"], "invalid contact_username, expected a string")
+                self.assertEqual(
+                    res["error"], "invalid contact_username, expected a string"
+                )
 
                 # Send a invalid contact_username
-                await ws.send_json({"type": "add_contact", "contact_username": "not-a-user"})
+                await ws.send_json(
+                    {"type": "add_contact", "contact_username": "not-a-user"}
+                )
                 res = await ws.receive_json()
                 self.assertEqual(res["success"], False)
                 self.assertEqual(res["type"], "add_contact")
@@ -125,7 +129,10 @@ class TestWSContactEvent(AioHTTPTestCase):
                 res = await ws.receive_json()
                 self.assertEqual(res["success"], True)
                 self.assertEqual(res["type"], "get_contacts")
-                self.assertTrue({"pqr", "uvw"} == set(res["data"]["contacts"]))
+                self.assertTrue(
+                    {"pqr", "uvw"}
+                    == set([u["username"] for u in res["data"]["contacts"]])
+                )
 
     async def tearDownAsync(self):
         # Remove the dbpath
