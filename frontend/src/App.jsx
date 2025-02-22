@@ -5,7 +5,7 @@ import Login from "./pages/Login";
 
 function App() {
   const router = createMemoryRouter([
-    { path: "/", element: <Navigate to="/loading" /> },
+    { path: "/", element: <Navigate to="/login" /> },
     { path: "/loading", element: <Loading /> },
     { path: "/login", element: <Login /> },
   ]);
